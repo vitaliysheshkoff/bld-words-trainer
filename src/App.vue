@@ -2,11 +2,12 @@
 import { onBeforeMount, ref } from 'vue'
 
 import importCSV from '@/utils/index.js'
-import ToggleOffIcon from '@/components/icons/ToggleOffIcon.vue'
-import ToggleOnIcon from '@/components/icons/ToggleOnIcon.vue'
+import MoonLightIcon from '@/components/icons/MoonLightIcon.vue'
+import MoonDarkIcon from '@/components/icons/MoonDarkIcon.vue'
+import FileExcelDarkIcon from '@/components/icons/FileExcelDarkIcon.vue'
+import FileExcelLightIcon from '@/components/icons/FileExcelLightIcon.vue'
 
-let data
-
+const spreadsheetLink = import.meta.env.VITE_SPREADSHEET_URL
 const removeBufferLetter = true
 const bufferLetterValue = 'Г'
 
@@ -15,8 +16,17 @@ const currentWord = ref('')
 const showWord = ref(true)
 const currentTheme = ref('dark')
 
-const toggleTheme = () => {
+let data
+
+const toggleTheme = (event) => {
+  event.stopPropagation()
   currentTheme.value = currentTheme.value === 'dark' ? 'light' : 'dark'
+  event.currentTarget.blur()
+  // Focus the parent element
+  const parentElement = event.currentTarget.parentElement
+  if (parentElement) {
+    parentElement.focus()
+  }
 }
 
 const showAnswer = () => {
@@ -63,9 +73,13 @@ onBeforeMount(async () => {
   <div :class="['container', currentTheme]" tabindex="0" @click="showAnswer" @keydown="showAnswer">
     <h1>{{ currentPair }}</h1>
     <h2 v-if="showWord" class="word">{{ currentWord }}</h2>
+    <a @click.stop :href="spreadsheetLink" class="word-table-link" target="_blank">
+      <FileExcelDarkIcon v-if="currentTheme === 'dark'" class="icon" />
+      <FileExcelLightIcon v-else class="icon" />
+    </a>
     <button @click="toggleTheme" class="theme-toggle" aria-label="Toggle theme">
-      <ToggleOnIcon v-if="currentTheme === 'dark'" class="icon" />
-      <ToggleOffIcon v-else class="icon" />
+      <MoonDarkIcon v-if="currentTheme === 'dark'" class="icon" />
+      <MoonLightIcon v-else class="icon" />
     </button>
   </div>
 </template>
@@ -125,6 +139,21 @@ h2 {
   border: none;
   cursor: pointer;
   padding: 10px;
+}
+
+.word-table-link {
+  padding: 10px;
+  /* color: #3498db;*/
+  font-size: 1.2rem;
+  text-decoration: underline;
+  transition: color 0.3s;
+  position: absolute;
+  top: 20px;
+  left: 20px;
+}
+
+.word-table-link:hover {
+  color: #2980b9;
 }
 
 .icon {

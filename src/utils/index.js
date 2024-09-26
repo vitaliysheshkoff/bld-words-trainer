@@ -1,7 +1,7 @@
 import Papa from 'papaparse'
 
 const importCSV = async () => {
-  const url = import.meta.env.VITE_SPREADSHEET_URL
+  const url = import.meta.env.VITE_DOWNLOAD_SPREADSHEET_URL
   let result = null
 
   await fetch(url)

@@ -12,7 +12,6 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
-    "csv": "^6.3.10",
     "papaparse": "^5.4.1",
     "vue": "^3.4.29"
   },
