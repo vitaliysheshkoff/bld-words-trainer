@@ -1,6 +1,10 @@
 name: "Deployment"
 on: push
 
+env:
+  VITE_SPREADSHEET_URL=${{ vars.VITE_SPREADSHEET_URL }}
+  VITE_DOWNLOAD_SPREADSHEET_URL=${{ vars.VITE_DOWNLOAD_SPREADSHEET_URL }}
+
 permissions:
   contents: write
   pages: write
@@ -23,8 +27,6 @@ jobs:
         run: |
           echo "VITE_DOWNLOAD_SPREADSHEET_URL=$VITE_DOWNLOAD_SPREADSHEET_URL"
           echo "VITE_SPREADSHEET_URL=$VITE_SPREADSHEET_URL"
-          echo VITE_DOWNLOAD_SPREADSHEET_URL=$VITE_DOWNLOAD_SPREADSHEET_URL >> .env
-          echo VITE_SPREADSHEET_URL=$VITE_SPREADSHEET_URL >> .env
 
       - name: Install dependencies
         run: npm install
