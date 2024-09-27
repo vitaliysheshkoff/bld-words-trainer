@@ -8,8 +8,6 @@ import FileExcelDarkIcon from '@/components/icons/FileExcelDarkIcon.vue'
 import FileExcelLightIcon from '@/components/icons/FileExcelLightIcon.vue'
 
 const spreadsheetLink = import.meta.env.VITE_SPREADSHEET_URL
-const removeBufferLetter = true
-const bufferLetterValue = 'Г'
 
 const currentPair = ref('')
 const currentWord = ref('')
@@ -44,10 +42,7 @@ const showAnswer = () => {
       // Exclude 'first/second' key
       randomSecondLetterValue =
         secondLetterKeys[Math.floor(Math.random() * (secondLetterKeys.length - 1) + 1)]
-    } while (
-      randomSecondLetterValue === randomFirstLetterValue ||
-      (removeBufferLetter && randomSecondLetterValue === bufferLetterValue)
-    )
+    } while (randomSecondLetterValue === randomFirstLetterValue)
 
     currentPair.value = randomFirstLetterValue + randomSecondLetterValue
     currentWord.value = data[randomFirstLetterIndex][randomSecondLetterValue]
@@ -55,16 +50,8 @@ const showAnswer = () => {
   }
 }
 
-const removeBuffer = () => {
-  const bufferIndex = Object.keys(data).find((item) => item['first/second'] === bufferLetterValue)
-  data.splice(bufferIndex, 1)
-}
-
 onBeforeMount(async () => {
   data = await importCSV.importCSV()
-  if (removeBufferLetter) {
-    removeBuffer()
-  }
   showAnswer()
 })
 </script>
@@ -114,13 +101,16 @@ onBeforeMount(async () => {
 
 h1 {
   font-size: 5rem;
-  margin: 0;
 }
 
 h2 {
   font-size: 3rem;
-  margin: 0;
   overflow-wrap: break-word;
+}
+
+h1,
+h2 {
+  margin: 0;
   transition: color 0.3s;
 }
 
@@ -143,10 +133,6 @@ h2 {
 
 .word-table-link {
   padding: 10px;
-  /* color: #3498db;*/
-  font-size: 1.2rem;
-  text-decoration: underline;
-  transition: color 0.3s;
   position: absolute;
   top: 20px;
   left: 20px;
