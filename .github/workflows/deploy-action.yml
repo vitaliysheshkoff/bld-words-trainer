@@ -21,6 +21,8 @@ jobs:
 
       - name: Create .env file
         run: |
+          echo "VITE_DOWNLOAD_SPREADSHEET_URL=$VITE_DOWNLOAD_SPREADSHEET_URL"
+          echo "VITE_SPREADSHEET_URL=$VITE_SPREADSHEET_URL"
           echo VITE_DOWNLOAD_SPREADSHEET_URL=$VITE_DOWNLOAD_SPREADSHEET_URL >> .env
           echo VITE_SPREADSHEET_URL=$VITE_SPREADSHEET_URL >> .env
 
