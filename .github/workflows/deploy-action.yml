@@ -1,0 +1,31 @@
+name: "Deployment"
+on: push
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+
+      - name: Create .env file
+        run: |
+          echo VITE_DOWNLOAD_SPREADSHEET_URL=${{ secrets.VITE_DOWNLOAD_SPREADSHEET_URL }} >> .env
+          echo VITE_SPREADSHEET_URL=${{ secrets.VITE_SPREADSHEET_URL }} >> .env
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Deploy with gh-pages
+        run: |
+          git remote set-url origin https://git:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
+          npm run deploy -- -u "github-actions-bot <support+actions@github.com>"
+        if: ${{ github.ref == 'refs/heads/master' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
