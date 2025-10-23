@@ -2,8 +2,20 @@ name: "Deployment"
 on: push
 
 env:
-  VITE_SPREADSHEET_URL: ${{ vars.SPREADSHEET_URL }}
-  VITE_DOWNLOAD_SPREADSHEET_URL: ${{ vars.DOWNLOAD_SPREADSHEET_URL }}
+  # Words sheet
+  VITE_WORDS_CSV_URL: ${{ vars.WORDS_CSV_URL }}
+  VITE_WORDS_SHEET_URL: ${{ vars.WORDS_SHEET_URL }}
+  
+  # Edges sheet
+  VITE_EDGES_CSV_URL: ${{ vars.EDGES_CSV_URL }}
+  VITE_EDGES_SHEET_URL: ${{ vars.EDGES_SHEET_URL }}
+  
+  # Corners sheet
+  VITE_CORNERS_CSV_URL: ${{ vars.CORNERS_CSV_URL }}
+  VITE_CORNERS_SHEET_URL: ${{ vars.CORNERS_SHEET_URL }}
+
+  # PIXABAY
+  VITE_PIXABAY_API_KEY: ${{ secrets.VITE_PIXABAY_API_KEY }}
 
 permissions:
   contents: write
