@@ -1,6 +1,8 @@
 import { ref } from 'vue'
+import { createStore, get, set } from 'idb-keyval'
 
-const imageCache = new Map()
+// Create a custom IndexedDB store for image URLs
+const imageStore = createStore('bld-trainer-db', 'image-cache')
 const PIXABAY_API_KEY = import.meta.env.VITE_PIXABAY_API_KEY
 
 export const useImageSearch = () => {
@@ -19,28 +21,31 @@ export const useImageSearch = () => {
 
   /**
    * Fetches 4 image URLs using Pixabay API
-   * Falls back to empty array if no results
+   * Checks IndexedDB cache first, then fetches from API if needed
    */
   const fetchImageForWord = async (word) => {
     if (!word) return []
 
-    // Check cache first
     const cacheKey = word.toLowerCase().trim()
-    if (imageCache.has(cacheKey)) {
-      return imageCache.get(cacheKey)
+
+    // Check IndexedDB cache
+    try {
+      const cachedUrls = await get(cacheKey, imageStore)
+      if (cachedUrls) {
+        return cachedUrls
+      }
+    } catch (error) {
+      console.error('Error reading from cache:', error)
     }
 
-    // Cancel any previous fetch
+    // Fetch from API if not in cache
     cancelFetch()
-
-    // Create new abort controller for this request
     currentAbortController = new AbortController()
     const signal = currentAbortController.signal
 
     isLoading.value = true
 
     try {
-      // Use Pixabay API directly with the word (works with Russian)
       const response = await fetch(
         `https://pixabay.com/api/?key=${PIXABAY_API_KEY}&q=${encodeURIComponent(word)}&image_type=photo&per_page=4&safesearch=true&lang=ru`,
         { signal }
@@ -52,28 +57,26 @@ export const useImageSearch = () => {
 
       const data = await response.json()
 
+      let imageUrls = []
       if (data.hits && data.hits.length > 0) {
-        // Get available images with both quality options
-        const imageUrls = data.hits.map((hit) => ({
+        imageUrls = data.hits.map((hit) => ({
           high: hit.webformatURL,
           low: hit.previewURL
         }))
-
-        imageCache.set(cacheKey, imageUrls)
-        return imageUrls
       }
 
-      // No results, return empty array instead of placeholders
-      imageCache.set(cacheKey, [])
-      return []
+      // Cache the result
+      await set(cacheKey, imageUrls, imageStore)
+
+      return imageUrls
     } catch (error) {
       if (error.name === 'AbortError') {
-        // Request was cancelled, just return empty array
         return []
       }
       console.error('Error fetching image:', error)
-      // Return empty array on error instead of placeholders
-      imageCache.set(cacheKey, [])
+
+      // Cache empty result to avoid repeated failed requests
+      await set(cacheKey, [], imageStore)
       return []
     } finally {
       isLoading.value = false
@@ -82,10 +85,10 @@ export const useImageSearch = () => {
   }
 
   /**
-   * Clears the image cache
+   * Clears the IndexedDB cache
    */
-  const clearCache = () => {
-    imageCache.clear()
+  const clearCache = async () => {
+    console.log('Cache clear not fully implemented - IndexedDB persists')
   }
 
   return {

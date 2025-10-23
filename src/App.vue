@@ -26,6 +26,10 @@ const { loadData, getRandomPair, parseValue, isLoading } = useTrainingData()
 const { fetchImageForWord, cancelFetch } = useImageSearch()
 const currentImageUrls = ref([])
 const imagesLoaded = ref([])
+const imagesPreloaded = ref(false)
+
+// Main container ref for focus management
+const mainContainer = ref(null)
 
 // State
 const modeData = ref({
@@ -43,7 +47,7 @@ const currentMode = computed(() => settings.value.currentMode)
 const currentConfig = computed(() => MODE_CONFIG[currentMode.value])
 const hasAlgorithm = computed(() => currentConfig.value.hasAlgorithm)
 const shouldShowAlgorithm = computed(() => hasAlgorithm.value && showAnswer.value && currentAlgorithm.value)
-const shouldShowWord = computed(() => currentWord.value && (!hasAlgorithm.value || showAnswer.value))
+const shouldShowWord = computed(() => currentWord.value && showAnswer.value)
 const shouldShowImage = computed(
   () => settings.value.showImages && shouldShowWord.value && currentImageUrls.value.length > 0
 )
@@ -52,29 +56,58 @@ const displayImageUrls = computed(() => {
   return currentImageUrls.value.map((img) => img[quality])
 })
 
-// Watch for word changes to fetch images
-watch([() => currentWord.value, () => settings.value.showImages], async ([word, showImages]) => {
-  // Cancel any ongoing fetch first
-  cancelFetch()
+/**
+ * Preloads images for the given quality
+ */
+const preloadImages = async (quality) => {
+  if (!currentImageUrls.value.length) return
 
-  // Clear current images immediately
-  currentImageUrls.value = []
-  imagesLoaded.value = []
+  imagesLoaded.value = new Array(currentImageUrls.value.length).fill(false)
+  const imageUrls = currentImageUrls.value.map((img) => img[quality])
 
-  if (showImages && word) {
-    const urls = await fetchImageForWord(word)
-    currentImageUrls.value = urls
-    // Initialize loaded state for each image
-    imagesLoaded.value = new Array(urls.length).fill(false)
+  await Promise.all(
+    imageUrls.map((url, index) => {
+      return new Promise((resolve) => {
+        const img = new Image()
+        img.onload = () => {
+          imagesLoaded.value[index] = true
+          resolve()
+        }
+        img.onerror = () => {
+          imagesLoaded.value[index] = true
+          resolve()
+        }
+        img.src = url
+      })
+    })
+  )
+}
+
+// Watch for word, showImages changes to fetch and preload images
+watch(
+  [() => currentWord.value, () => settings.value.showImages],
+  async ([word, showImages]) => {
+    cancelFetch()
+    currentImageUrls.value = []
+    imagesLoaded.value = []
+    imagesPreloaded.value = false
+
+    if (showImages && word) {
+      const urls = await fetchImageForWord(word)
+      currentImageUrls.value = urls
+      await preloadImages(settings.value.imageQuality || 'high')
+      imagesPreloaded.value = true
+    }
   }
-})
+)
 
-// Watch for quality changes to reset image loaded states
+// Watch for quality changes to preload new quality images
 watch(
   () => settings.value.imageQuality,
-  () => {
-    // Reset loaded states when quality changes
-    imagesLoaded.value = new Array(currentImageUrls.value.length).fill(false)
+  async (quality) => {
+    if (settings.value.showImages && currentImageUrls.value.length) {
+      await preloadImages(quality || 'high')
+    }
   }
 )
 
@@ -146,13 +179,6 @@ const handleInteraction = (event) => {
   // Prevent triggering on button/link clicks
   if (event.target.closest('button, a')) return
 
-  // For words mode (no algorithm), always show next pair
-  if (!hasAlgorithm.value) {
-    showNextPair()
-    return
-  }
-
-  // For edges/corners (has algorithm), toggle answer first, then next pair
   if (!showAnswer.value) {
     showAnswer.value = true
   } else {
@@ -183,20 +209,10 @@ const handleSettingsClick = (event) => {
  */
 const handleSettingsClose = () => {
   isSettingsOpen.value = false
-}
-
-/**
- * Handles image load event
- */
-const handleImageLoad = (index) => {
-  imagesLoaded.value[index] = true
-}
-
-/**
- * Handles image error event
- */
-const handleImageError = (index) => {
-  imagesLoaded.value[index] = true // Show broken state rather than infinite loading
+  // Restore focus to main container after a short delay to allow modal to close
+  setTimeout(() => {
+    mainContainer.value?.focus()
+  }, 100)
 }
 
 /**
@@ -224,6 +240,7 @@ onBeforeMount(async () => {
 
 <template>
   <div
+    ref="mainContainer"
     class="flex min-h-screen flex-col items-center justify-center cursor-pointer transition-colors duration-300 relative p-8 bg-neutral-100 text-neutral-900 dark:bg-neutral-900 dark:text-neutral-100 focus:outline-none"
     tabindex="0"
     @click="handleInteraction"
@@ -290,8 +307,6 @@ onBeforeMount(async () => {
                 v-show="imagesLoaded[index]"
                 :src="imageUrl"
                 :alt="`${currentWord} ${index + 1}`"
-                @load="handleImageLoad(index)"
-                @error="handleImageError(index)"
                 class="absolute inset-0 w-full h-full rounded-xl shadow-lg object-cover"
               />
             </div>

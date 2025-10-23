@@ -5,7 +5,7 @@ const SETTINGS_KEY = 'bld-trainer-settings'
 
 const defaultSettings = {
   showImages: false,
-  imageQuality: 'low', // 'high' or 'low'
+  imageQuality: 'high', // 'high' or 'low'
   currentMode: MODES.WORDS
 }
 
