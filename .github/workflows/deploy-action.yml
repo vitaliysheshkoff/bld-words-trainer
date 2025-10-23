@@ -15,7 +15,7 @@ env:
   VITE_CORNERS_SHEET_URL: ${{ vars.CORNERS_SHEET_URL }}
 
   # PIXABAY
-  VITE_PIXABAY_API_KEY: ${{ secrets.VITE_PIXABAY_API_KEY }}
+  VITE_PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
 
 permissions:
   contents: write
