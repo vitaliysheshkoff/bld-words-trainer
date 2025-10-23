@@ -28,7 +28,11 @@ export const useTheme = () => {
   }
 
   watchEffect(() => {
-    document.documentElement.classList.toggle('dark', currentTheme.value === 'dark')
+    if (currentTheme.value === 'dark') {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
   })
 
   return {

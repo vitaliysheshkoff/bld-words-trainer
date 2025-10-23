@@ -1,16 +1,20 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-/* Custom base styles */
+@variant dark (&:where(.dark, .dark *));
+
 @layer base {
-  * {
-    @apply box-border m-0 font-normal;
-  }
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        font-weight: normal;
+    }
 
-  body {
-    @apply min-h-screen leading-relaxed antialiased;
-    font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
-      Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-  }
+    body {
+        min-height: 100vh;
+        line-height: 1.625;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
+        Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    }
 }
